@@ -1,14 +1,14 @@
 const { test, expect } = require('@playwright/test');
 const { faker } = require('@faker-js/faker');
 
-test.describe('API Automation Tests', () => {
+test.describe.serial('API Automation Tests', () => {
 
     let tokenCookie = '';
     let createdRoomId = null;
 
     test.beforeAll(async ({ request }) => {
-        // 1. Authenticate to get the token for admin API calls
-        const loginResponse = await request.post('/auth/login', {
+        // Authenticate to get token for admin API calls
+        const loginResponse = await request.post('/api/auth/login', {
             data: {
                 username: 'admin',
                 password: 'password'
@@ -21,8 +21,8 @@ test.describe('API Automation Tests', () => {
             test.skip(`Skipping API tests: admin login failed with status ${loginResponse.status()}`);
         }
 
-        const headers = loginResponse.headers();
-        tokenCookie = headers['set-cookie'].split(';')[0]; // Extract the token cookie
+        const { token } = await loginResponse.json();
+        tokenCookie = `token=${token}`;
     });
 
     // Test 1: Create a Room using Admin API and check it on User API
@@ -33,12 +33,12 @@ test.describe('API Automation Tests', () => {
             accessible: true,
             description: faker.lorem.sentence(),
             image: "https://www.mwtestconsultancy.co.uk/img/testim/room2.jpg",
-            roomPrice: faker.number.int({ min: 50, max: 300 }).toString(),
+            roomPrice: faker.number.int({ min: 50, max: 300 }),
             features: ["WiFi", "TV", "Radio"]
         };
 
         // Admin creates room
-        const createResponse = await request.post('/room/', {
+        const createResponse = await request.post('/api/room/', {
             headers: {
                 'Cookie': tokenCookie,
                 'Content-Type': 'application/json'
@@ -46,19 +46,20 @@ test.describe('API Automation Tests', () => {
             data: roomPayload
         });
 
-        expect(createResponse.status()).toBe(201);
-        const createdRoom = await createResponse.json();
-        createdRoomId = createdRoom.roomid;
-        expect(createdRoomId).toBeGreaterThan(0);
+        expect(createResponse.status()).toBe(200);
+        const createBody = await createResponse.json();
+        expect(createBody.success).toBe(true);
 
         // User gets rooms (no auth required)
-        const getRoomsResponse = await request.get('/room/');
+        const getRoomsResponse = await request.get('/api/room/');
         expect(getRoomsResponse.ok()).toBeTruthy();
         const rooms = await getRoomsResponse.json();
 
         // Verify room is in the list
-        const roomExists = rooms.rooms.find(r => r.roomid === createdRoomId);
+        const roomExists = rooms.rooms.find(r => r.roomName === roomPayload.roomName);
         expect(roomExists).toBeDefined();
+        createdRoomId = roomExists.roomid;
+        expect(createdRoomId).toBeGreaterThan(0);
         expect(roomExists.roomName).toBe(roomPayload.roomName);
     });
 
@@ -85,7 +86,7 @@ test.describe('API Automation Tests', () => {
         };
 
         // User books room (no auth required)
-        const bookResponse = await request.post('/booking/', {
+        const bookResponse = await request.post('/api/booking/', {
             data: bookingPayload
         });
 
@@ -96,7 +97,7 @@ test.describe('API Automation Tests', () => {
 
         // Admin checks bookings
         // We can fetch all bookings, or bookings for a specific room
-        const adminCheckResponse = await request.get(`/booking/?roomid=${createdRoomId}`, {
+        const adminCheckResponse = await request.get(`/api/booking/?roomid=${createdRoomId}`, {
             headers: {
                 'Cookie': tokenCookie
             }
@@ -120,12 +121,12 @@ test.describe('API Automation Tests', () => {
             accessible: true,
             description: "Updated Description", // Changed desc
             image: "https://www.mwtestconsultancy.co.uk/img/testim/room2.jpg",
-            roomPrice: "250",
+            roomPrice: 250,
             features: ["WiFi", "Refreshments"]
         };
 
         // Admin updates room
-        const updateResponse = await request.put(`/room/${createdRoomId}`, {
+        const updateResponse = await request.put(`/api/room/${createdRoomId}`, {
             headers: {
                 'Cookie': tokenCookie,
                 'Content-Type': 'application/json'
@@ -133,10 +134,12 @@ test.describe('API Automation Tests', () => {
             data: updatePayload
         });
 
-        expect(updateResponse.status()).toBe(202);
+        expect(updateResponse.status()).toBe(200);
+        const updateBody = await updateResponse.json();
+        expect(updateBody.success).toBe(true);
 
         // User gets rooms
-        const getRoomsResponse = await request.get('/room/');
+        const getRoomsResponse = await request.get('/api/room/');
         const rooms = await getRoomsResponse.json();
 
         // Verify changes
@@ -152,16 +155,18 @@ test.describe('API Automation Tests', () => {
         expect(createdRoomId, "Room must be created first").not.toBeNull();
 
         // Admin deletes room
-        const deleteResponse = await request.delete(`/room/${createdRoomId}`, {
+        const deleteResponse = await request.delete(`/api/room/${createdRoomId}`, {
             headers: {
                 'Cookie': tokenCookie
             }
         });
 
-        expect(deleteResponse.status()).toBe(202);
+        expect(deleteResponse.status()).toBe(200);
+        const deleteBody = await deleteResponse.json();
+        expect(deleteBody.success).toBe(true);
 
         // User gets rooms
-        const getRoomsResponse = await request.get('/room/');
+        const getRoomsResponse = await request.get('/api/room/');
         const rooms = await getRoomsResponse.json();
 
         // Verify room is no longer in the list
