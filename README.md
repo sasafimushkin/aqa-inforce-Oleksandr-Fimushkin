@@ -110,8 +110,7 @@ Implement API automation tests for the following flows:
 aqa-inforce-Oleksandr-Fimushkin
 ├── e2e/
 │   ├── ui.spec.js
-│   ├── api.spec.js
-│   └── admin-snapshots.spec.js
+│   └── api.spec.js
 ├── test-cases.txt
 ├── playwright.config.js
 ├── package.json
