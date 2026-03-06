@@ -1,0 +1,35 @@
+AQA Test Task - Test Cases
+
+UI FLOWS (User App: https://automationintesting.online/)
+
+Test Case 1: Room booking with valid data
+Description: Verify that a user can successfully book a room providing valid details.
+Steps:
+1. Navigate to the User App homepage.
+2. Locate the "Book this room" button for an available room and click it.
+3. Fill in the "First Name" field with valid data (e.g., "John").
+4. Fill in the "Last Name" field with valid data (e.g., "Doe").
+5. Fill in the "Email" field with a valid email (e.g., "john.doe@test.com").
+6. Fill in the "Phone" field with a valid phone number (e.g., "01234567890").
+7. Select a start date and an end date from the calendar.
+8. Click the "Book" button.
+Expected Result: The booking should be successful, and a success message indicating the booking is confirmed should appear.
+
+Test Case 2: Room booking with invalid data
+Description: Verify that a user cannot book a room when providing invalid details or leaving required fields empty.
+Steps:
+1. Navigate to the User App homepage.
+2. Locate the "Book this room" button for an available room and click it.
+3. Leave the "First Name", "Last Name", "Email", and "Phone" fields empty, OR enter invalid data (e.g., an invalid email format).
+4. Select a start date and an end date from the calendar.
+5. Click the "Book" button.
+Expected Result: The booking should fail, and error messages should appear for the required/invalid fields.
+
+Test Case 3: Booked dates show as Unavailable
+Description: Verify that dates belonging to an existing booking are not available for selection.
+Steps:
+1. Book a room for specific dates (e.g., Date X to Date Y) completing Test Case 1.
+2. Navigate to the User App homepage again (or refresh the page).
+3. Locate the "Book this room" button for the same room.
+4. Try to select dates that overlap with the previously booked dates (Date X to Date Y) in the calendar.
+Expected Result: The previously booked dates (Date X to Date Y) should be visually distinct (unavailable) and cannot be selected for a new booking.
