@@ -9,7 +9,9 @@ module.exports = defineConfig({
   reporter: 'html',
   use: {
     baseURL: 'https://automationintesting.online',
-    trace: 'on-first-retry',
+    trace: 'on',
+    screenshot: 'on',
+    video: 'on',
   },
   projects: [
     {
